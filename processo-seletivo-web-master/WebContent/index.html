@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Crud de Teste</title>
+
+<!-- Bootstrap -->
+<link href="css/bootstrap-4.3.1.css" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/animate.css">
+<link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css" integrity="sha384-UHRtZLI+pbxtHCWp1t77Bi1L4ZtiqrqD80Kn4Z8NTSRyMA2Fd33n5dQ8lWUE00s/" crossorigin="anonymous">
+</head>
+<body>
+<div class="container">
+  <div class="corposite" id="app_crud">
+    <div class="row">
+      <div class="col-md-6 bg-green">
+        <div class="d-flex justify-content-center p-3"> <img src="images/logo.png" class="logo" width="82" height="95" alt=""/> </div>
+        <div class="d-flex justify-content-center p-3">
+          <p>Formulário de cadastro para teste HEPTA </p>
+        </div>
+        <div class="d-flex">
+          <div class="col-md-2">
+            <input type="text" v-model="dto.id" placeholder="Id" class="form-control formstyle "/>
+          </div>
+          <div class="col-md-10 ml-auto ">
+            <input type="text" v-model="dto.nome" placeholder="Nome" class="form-control formstyle"/>
+          </div>
+        </div>
+        <div class="row"> </div>
+        <div class="p-3 d-flex justify-content-center"> <a href="#" @click="salvarPessoa"     class="boxicons m-1"> <i class="far fa-save " ></i></a> <a href="#" @click="buscarPessoas"    class="boxicons m-1"> <i class="fas fa-search " ></i></a> <a href="#" onclick="limparCampos();" class="boxicons m-1"> <i class="fas fa-eraser "></i></a> </div>
+      </div>
+      <div class="col-md-6 bg-blue">
+        <h2>{{ dto.nome }}</h2>
+        <div  class="div_principal">
+          <div style="float: right; font-size: 14px" >Total: {{ totalRegistros }} Registros</div>
+          <div class="titulos">
+            <div class="row">
+              <div class="col-md-1"> ID </div>
+              <div class="col-md-6"> Nome</div>
+              <div class="col-md-4"></div>
+            </div>
+          </div>
+          <div class="titulos">
+            <div class="row" v-for="obj in lista" >
+              <div class="d-flex justify-content-start resultlist m-1 p-2"> {{ obj.id }} </div>
+              <div class="d-flex flex-grow-1 resultlist m-1 p-2"> {{ obj.nome }}</div>
+              <div class="d-flex justify-content-end  m-1 p-2"> <i class= "far fa-edit p-1 bt-action" @click="editarItem(obj)" title="Editar"></i> <i class= "far fa-trash-alt p-1" @click="excluirItem(obj.id)" title="Excluir"></i> </div>
+            </div>
+            <input type="hidden" v-model="initValue" />
+            <div class="d-flex justify-content-center"> <span style="cursor: pointer;" v-if="initValue > 5" @click="voltarListagem"> <i class="fas fa-arrow-left p-2" ></i> </span> <span style="cursor: pointer;" @click="avancarListagem"
+				v-if="(initValue+10)<totalRegistros"><i class="fas fa-arrow-right p-2"></i></span> </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/vue"></script> 
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script> 
+<script src="js/jquery-3.3.1.min.js"></script> 
+<script src="js/popper.min.js"></script> 
+<script src="js/bootstrap-4.3.1.js"></script> 
+<script>
+		var vm1 = new Vue({
+			el : '#app_crud',
+			data : {
+				lista : [ {
+					id : '1',
+					nome : 'Teste'
+				} ],
+				
+				dto : {id : '',
+					nome : ''},
+				initValue : 0,
+				totalRegistros : 0
+			},
+	        methods: {
+	          buscarPessoas: function() {
+	            listarPessoasREST();
+	          },
+	          
+	          salvarPessoa : function() {
+	        	  axios.post('http://externos.hepta.com.br:8080/CrudWS/rest/pessoa/salvar', this.dto)
+	        		  .then(function (response) {
+	        		    console.log(response);
+	        		    listarPessoasREST();
+	        		    limparCampos();
+	        		  })
+	        		  .catch(function (error) {
+	        		    console.log(error);
+	        		  });
+
+	          },
+	          editarItem : function(obj) {
+	        	  this.dto = obj
+
+	          },
+	          excluirItem : function(id) {
+	        	   axios.delete('http://externos.hepta.com.br:8080/CrudWS/rest/pessoa/deletar/'+id)
+	        	  	 .then(function (response) {
+	        		    console.log(response);
+	        		    listarPessoasREST();
+	        		    limparCampos();
+	        		  })
+	        		  .catch(function (error) {
+	        		    console.log(error);
+	        		  }); 
+	        	   
+
+	          },
+	          voltarListagem : function(){
+	        	  this.initValue = this.initValue - 10;
+	        	  listarPessoasREST();
+	          },
+	          avancarListagem : function(){
+	        	  this.initValue = this.initValue + 10;
+	        	  listarPessoasREST();
+	          }
+	        },
+	        created: listarInicial()
+		})
+		
+		function limparCampos(){
+			vm1.dto = {id:'',nome:''};
+		}
+		
+		function listarPessoasREST(){
+			axios.get("http://externos.hepta.com.br:8080/CrudWS/rest/pessoa/listar?initValue="+vm1.initValue)
+            .then(response => {console.log(response.data);vm1.lista = response.data
+          	  }).catch(function (error) {
+          	    console.log(error);
+          	  });
+			
+			getTotalRegistros();
+		}
+		
+		function listarInicial(){
+			axios.defaults.headers.common['Content-Type'] = 'application/x-www-form-urlencoded';
+			axios.get("http://externos.hepta.com.br:8080/CrudWS/rest/pessoa/listar")
+            .then(response => {console.log(response.data);vm1.lista = response.data
+          	  }).catch(function (error) {
+          	    console.log(error);
+          	  });
+			
+			getTotalRegistros();
+		}
+		
+		
+         function getTotalRegistros(){
+      	  axios.get("http://externos.hepta.com.br:8080/CrudWS/rest/pessoa/total")
+            .then(response => {vm1.totalRegistros = response.data
+          	  }).catch(function (error) {
+          	    console.log(error);
+          	  });
+        }
+		
+	</script>
+</body>
+</html>
